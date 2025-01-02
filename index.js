@@ -53,7 +53,7 @@ async function run() {
     const review_collections = database.collection('reviews');
 
     // JWT authentication route
-    app.post('/jwt',verify_TOKEN, async (req, res) => {
+    app.post('/jwt', async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.secreact_token, { expiresIn: '1h' });
       res
@@ -203,6 +203,7 @@ async function run() {
     // Fetch services by email
     app.get('/all_service/:email',verify_TOKEN, async (req, res) => {
       const { email } = req.params;
+      
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
@@ -242,18 +243,17 @@ async function run() {
       }
     });
 
-    console.log('Pinged your deployment. Successfully connected to MongoDB!');
   } finally {
     // Optionally close the client
   }
 }
 
-run().catch(console.dir);
+run();
 
 app.get('/', (req, res) => {
   res.send('Service review app is running');
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  // console.log(`Server running on port ${port}`);
 });
