@@ -226,20 +226,20 @@ async function run() {
     });
 
     // Delete a service
-    app.delete('/service_delete/:serviceId', async (req, res) => {
+    app.delete('/service_delete/:serviceId',verify_TOKEN, async (req, res) => {
       const id = req.params.serviceId;
       const result = await service_collections.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
     // Update a service
-    app.put('/service_change/:id', async (req, res) => {
+    app.put('/service_change/:id', verify_TOKEN, async (req, res) => {
       const { id } = req.params;
-      const { serviceImage, serviceTitle, companyName, website, description, category, price } = req.body;
+      const {email, serviceImage, serviceTitle, companyName, website, description, category, price } = req.body;
       try {
         const result = await service_collections.updateOne(
           { _id: new ObjectId(id) },
-          { $set: { formData: { serviceImage, serviceTitle, companyName, website, description, category, price } } }
+          { $set: { formData: {email, serviceImage, serviceTitle, companyName, website, description, category, price } } }
         );
         if (result.matchedCount === 0) {
           return res.status(404).send({ message: 'Service not found' });
