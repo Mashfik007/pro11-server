@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
+app.use(cors({ origin: ['http://localhost:5173', 'https://service-review-3d3f0.web.app', "https://service-review-3d3f0.firebaseapp.com"], credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -44,7 +44,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // client.connect();
 
     // Database and collections
     const database = client.db('service_review_system');
@@ -59,17 +59,19 @@ async function run() {
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
 
     // Logout route
-    app.post('/logout',verify_TOKEN, async (req, res) => {
+    app.post('/logout', async (req, res) => {
       res
         .clearCookie('token', {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ logOUT_success: true });
     });
@@ -112,18 +114,23 @@ async function run() {
         res.status(500).json({ message: 'Error adding services', error });
       }
     });
+
+
     // Get all services
-    app.get('/all_services',verify_TOKEN, async (req, res) => {
+    app.get('/all_services', async (req, res) => { // Add async here
       try {
         const services = await service_collections.find().toArray();
+        console.log(services);
+        
         res.status(200).json(services);
       } catch (error) {
         res.status(500).json({ message: 'Error fetching services', error });
       }
     });
 
+
     // Get service details by ID
-    app.get('/service_details/:id',verify_TOKEN, async (req, res) => {
+    app.get('/service_details/:id', async (req, res) => {
       try {
         const id = req.params.id;
         const service = await service_collections.findOne({ _id: new ObjectId(id) });
@@ -148,7 +155,7 @@ async function run() {
     });
 
     // Get reviews by service ID
-    app.get('/review',verify_TOKEN,verify_TOKEN, async (req, res) => {
+    app.get('/review', async (req, res) => {
       const { serviceId } = req.query;
       try {
         const reviews = await review_collections.find({ serviceId }).toArray();
@@ -159,7 +166,7 @@ async function run() {
     });
 
     // Get reviews by email
-    app.get('/review_email/:email',verify_TOKEN, async (req, res) => {
+    app.get('/review_email/:email', verify_TOKEN, async (req, res) => {
       const { email } = req.params;
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
@@ -201,32 +208,32 @@ async function run() {
     });
 
     // Fetch services by email
-    app.get('/all_service/:email',verify_TOKEN, async (req, res) => {
+    app.get('/all_service/:email', async (req, res) => {
       const { email } = req.params;
+      console.log('te ',email);
       
+
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
-      try {
         const reviews = await service_collections.find({ 'formData.email': email }).toArray();
+        console.log('line 219',reviews);
+        
         if (reviews.length === 0) {
           return res.status(404).json({ message: 'No services found for this email' });
         }
         res.status(200).json(reviews);
-      } catch (error) {
-        res.status(500).json({ message: 'Error fetching services', error });
-      }
     });
 
     // Delete a service
-    app.delete('/service_delete/:serviceId',verify_TOKEN, async (req, res) => {
+    app.delete('/service_delete/:serviceId', async (req, res) => {
       const id = req.params.serviceId;
       const result = await service_collections.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
     // Update a service
-    app.put('/service_change/:id',verify_TOKEN, async (req, res) => {
+    app.put('/service_change/:id', async (req, res) => {
       const { id } = req.params;
       const { serviceImage, serviceTitle, companyName, website, description, category, price } = req.body;
       try {
@@ -255,5 +262,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-  // console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
