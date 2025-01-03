@@ -248,7 +248,6 @@ async function run() {
     });
 
   } finally {
-    // Optionally close the client
   }
 }
 
