@@ -208,7 +208,7 @@ async function run() {
     });
 
     // Fetch services by email
-    app.get('/all_service/:email', async (req, res) => {
+    app.get('/all_service/:email',verify_TOKEN, async (req, res) => {
       const { email } = req.params;
       console.log('te ',email);
       
