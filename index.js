@@ -120,7 +120,6 @@ async function run() {
     app.get('/all_services', async (req, res) => { // Add async here
       try {
         const services = await service_collections.find().toArray();
-        console.log(services);
         
         res.status(200).json(services);
       } catch (error) {
@@ -210,14 +209,12 @@ async function run() {
     // Fetch services by email
     app.get('/all_service/:email',verify_TOKEN, async (req, res) => {
       const { email } = req.params;
-      console.log('te ',email);
       
 
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
         const reviews = await service_collections.find({ 'formData.email': email }).toArray();
-        console.log('line 219',reviews);
         
         if (reviews.length === 0) {
           return res.status(404).json({ message: 'No services found for this email' });
@@ -262,5 +259,4 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
 });
